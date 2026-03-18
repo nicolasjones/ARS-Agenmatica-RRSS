@@ -1,16 +1,22 @@
 # ARS Agenmatica RRSS
 
-Sistema agéntico inteligente para gestión automatizada de redes sociales.
+Sistema multi-agente inteligente para gestión automatizada de redes sociales para artistas.
 
-## Descripción
+## Stack
 
-ARS Agenmatica RRSS utiliza agentes de IA especializados que trabajan de forma coordinada para analizar, crear, publicar y optimizar contenido en múltiples plataformas sociales (Twitter/X, Instagram, LinkedIn, TikTok).
+| Layer | Tech |
+|-------|------|
+| Backend | FastAPI + Python 3.11 |
+| Frontend | React + Tailwind CSS + Vite |
+| Agents | CrewAI (orchestrator, replaceable) |
+| LLM | Claude API / OpenAI |
+| API Docs | OpenAPI/Swagger (auto-generated) |
 
 ## Agentes
 
 | Agente | Responsabilidad |
 |--------|----------------|
-| **ContentAgent** | Generación de contenido adaptado por plataforma |
+| **ContentCreatorAgent** | Generación de contenido adaptado por plataforma |
 | **SchedulerAgent** | Planificación optimizada de publicaciones |
 | **AnalyticsAgent** | Análisis de métricas y rendimiento |
 | **EngagementAgent** | Gestión de interacciones y menciones |
@@ -19,38 +25,33 @@ ARS Agenmatica RRSS utiliza agentes de IA especializados que trabajan de forma c
 ## Setup
 
 ```bash
-# Requisitos: Node.js 20+
+# Backend
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+uvicorn app.main:app --reload    # http://localhost:8000
+# API docs: http://localhost:8000/docs
+
+# Frontend
+cd frontend
 npm install
-cp .env.example .env  # Configurar variables de entorno
-npm run dev
+npm run dev                       # http://localhost:5173
 ```
 
-## Desarrollo
+## Arquitectura: Business Logic Aislada
 
-Este proyecto usa [OpenSpec](https://github.com/Fission-AI/OpenSpec) para desarrollo guiado por especificaciones:
+La lógica de negocio vive en `backend/app/agents/services/` y es **independiente del orquestador**. CrewAI es el orquestador inicial (en `agents/crews/`), pero puede reemplazarse por LangGraph u otro sin tocar el core del negocio.
+
+## Desarrollo con OpenSpec
 
 ```bash
-# Proponer un cambio
-/opsx:propose "descripción del cambio"
-
-# Implementar
-/opsx:apply
-
-# Archivar cambio completado
-/opsx:archive
+/opsx:propose "descripción del cambio"   # Crear propuesta
+/opsx:apply                               # Implementar
+/opsx:archive                             # Archivar
 ```
 
-Las specs del sistema están en `openspec/specs/`.
-
-## Scripts
-
-```bash
-npm run dev        # Servidor de desarrollo
-npm run build      # Compilar TypeScript
-npm run test       # Ejecutar tests
-npm run typecheck  # Verificar tipos
-npm run lint       # Linter
-```
+Specs del sistema en `openspec/specs/`.
 
 ## Licencia
 

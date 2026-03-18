@@ -4,6 +4,13 @@ node_modules/
 # Build
 dist/
 
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+*.egg
+
 # Environment
 .env
 .env.local
@@ -25,7 +32,11 @@ logs/
 
 # Test coverage
 coverage/
+.coverage
+htmlcov/
+.pytest_cache/
 
 # Temp
 tmp/
 .tmp/
+.ruff_cache/

@@ -2,69 +2,69 @@
 
 ## Overview
 
-Los agentes son la unidad fundamental de trabajo en ARS Agenmatica. Cada agente es una entidad autónoma con un objetivo, herramientas y contexto definidos.
+El sistema usa 5 agentes especializados orquestados por CrewAI. Cada agente es un wrapper delgado sobre un servicio de negocio framework-agnostic.
 
-## Agent Interface
+## Agent Definitions
 
-Todos los agentes implementan la interfaz base `Agent`:
-
-```typescript
-interface Agent {
-  id: string;
-  name: string;
-  role: AgentRole;
-  execute(task: AgentTask): Promise<AgentResult>;
-  getCapabilities(): AgentCapability[];
-}
-```
-
-## Agent Types
-
-### ContentAgent
-- **Rol**: Generación de contenido para redes sociales
-- **Input**: Tema, plataforma objetivo, tono, restricciones
-- **Output**: Contenido formateado para la plataforma (texto, hashtags, media suggestions)
-- **Tools**: LLM (Claude API), image generation API, template engine
+### ContentCreatorAgent
+- **Goal**: Generar contenido creativo adaptado a cada plataforma y al estilo del artista
+- **Service**: `ContentService`
+- **Inputs**: Tema, plataforma, tono, brand voice del artista, restricciones
+- **Outputs**: Texto, hashtags, sugerencias de media, CTAs
+- **Tools**: LLM (Claude/OpenAI), template engine
 
 ### SchedulerAgent
-- **Rol**: Planificación temporal de publicaciones
-- **Input**: Contenido listo, plataforma, datos de audiencia
-- **Output**: Calendario de publicación optimizado
-- **Tools**: Analytics data, timezone management, queue system
+- **Goal**: Planificar publicaciones en horarios óptimos
+- **Service**: `ScheduleService`
+- **Inputs**: Contenido aprobado, datos de audiencia, timezone del artista
+- **Outputs**: Calendario de publicación optimizado
+- **Tools**: Analytics data, timezone management
 
 ### AnalyticsAgent
-- **Rol**: Recopilación y análisis de métricas
-- **Input**: Período de tiempo, plataformas, métricas objetivo
-- **Output**: Reports con insights y recomendaciones
-- **Tools**: Platform APIs (read), data aggregation, trend analysis
+- **Goal**: Recopilar métricas y generar insights accionables
+- **Service**: `AnalyticsService`
+- **Inputs**: Período, plataformas, KPIs objetivo
+- **Outputs**: Reports con trends, mejores/peores posts, recomendaciones
+- **Tools**: Platform APIs, data aggregation
 
 ### EngagementAgent
-- **Rol**: Gestión de interacciones en redes sociales
-- **Input**: Notificaciones, menciones, comentarios
-- **Output**: Respuestas sugeridas, alertas de crisis, sentiment analysis
-- **Tools**: Platform APIs, sentiment analyzer, notification system
+- **Goal**: Gestionar interacciones con la audiencia del artista
+- **Service**: `EngagementService`
+- **Inputs**: Comentarios, menciones, DMs
+- **Outputs**: Respuestas sugeridas, alertas, sentiment analysis
+- **Tools**: Sentiment analyzer, notification system
 
 ### StrategyAgent
-- **Rol**: Definición y ajuste de estrategia de contenido
-- **Input**: Analytics reports, objectives, brand guidelines
-- **Output**: Content plan, posting strategy, A/B test proposals
-- **Tools**: AnalyticsAgent data, market trends, competitor analysis
+- **Goal**: Definir y ajustar la estrategia de contenido
+- **Service**: `StrategyService`
+- **Inputs**: Analytics reports, objetivos del artista, tendencias del mercado
+- **Outputs**: Content plan, posting strategy, A/B test proposals
+- **Tools**: AnalyticsService data, trend analysis
 
-## Orchestrator
+## CrewAI Orchestration
 
-El Orchestrator coordina la ejecución de agentes:
-
-1. Recibe tareas de alto nivel (ej: "crear campaña para lanzamiento de producto")
-2. Descompone en sub-tareas asignadas a agentes específicos
-3. Gestiona dependencias entre agentes
-4. Consolida resultados y reporta estado
-
-## Agent Lifecycle
-
-```
-IDLE → ASSIGNED → EXECUTING → COMPLETED/FAILED → IDLE
+```python
+# Crew definition (replaceable layer)
+social_media_crew = Crew(
+    agents=[content_agent, scheduler_agent, analytics_agent, ...],
+    tasks=[...],
+    process=Process.sequential  # or hierarchical
+)
 ```
 
-- Los agentes son stateless entre ejecuciones
-- El contexto se pasa explícitamente en cada tarea
-- Los resultados se persisten en la capa de datos
+## Isolation Pattern
+
+```
+CrewAI Agent (thin wrapper)
+    │
+    ├── Uses: CrewAI @agent decorator, tools
+    ├── Calls: BusinessService methods
+    └── Returns: CrewAI-compatible output
+
+BusinessService (framework-agnostic)
+    │
+    ├── Pure Python classes
+    ├── No CrewAI imports
+    ├── Testable independently
+    └── Reusable with any orchestrator
+```

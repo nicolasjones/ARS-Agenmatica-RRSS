@@ -2,69 +2,50 @@
 
 ## Overview
 
-La capa de plataformas proporciona adaptadores uniformes para interactuar con las APIs de cada red social. Cada adaptador implementa una interfaz común que abstrae las diferencias entre plataformas.
+Adapters para interactuar con las APIs de cada red social. Cada adapter implementa una interfaz común Python.
 
 ## Platform Adapter Interface
 
-```typescript
-interface PlatformAdapter {
-  platform: PlatformType;
+```python
+class PlatformAdapter(ABC):
+    platform: PlatformType
 
-  // Content
-  publish(post: Post): Promise<PublishResult>;
-  schedule(post: Post, publishAt: Date): Promise<ScheduleResult>;
-  delete(postId: string): Promise<void>;
+    @abstractmethod
+    async def publish(self, post: Post) -> PublishResult: ...
 
-  // Analytics
-  getPostMetrics(postId: string): Promise<PostMetrics>;
-  getAccountMetrics(period: DateRange): Promise<AccountMetrics>;
+    @abstractmethod
+    async def schedule(self, post: Post, publish_at: datetime) -> ScheduleResult: ...
 
-  // Engagement
-  getComments(postId: string): Promise<Comment[]>;
-  replyToComment(commentId: string, text: string): Promise<Comment>;
-  getMentions(since: Date): Promise<Mention[]>;
+    @abstractmethod
+    async def delete_post(self, post_id: str) -> None: ...
 
-  // Auth
-  authenticate(credentials: PlatformCredentials): Promise<AuthToken>;
-  refreshToken(token: AuthToken): Promise<AuthToken>;
-}
+    @abstractmethod
+    async def get_post_metrics(self, post_id: str) -> PostMetrics: ...
+
+    @abstractmethod
+    async def get_account_metrics(self, period: DateRange) -> AccountMetrics: ...
+
+    @abstractmethod
+    async def get_comments(self, post_id: str) -> list[Comment]: ...
+
+    @abstractmethod
+    async def get_mentions(self, since: datetime) -> list[Mention]: ...
 ```
 
 ## Supported Platforms
 
-### Twitter/X
-- API: Twitter API v2
-- Auth: OAuth 2.0
-- Capabilities: text posts, threads, media, polls, analytics
-- Rate limits: variable by endpoint
+| Platform   | API               | Auth       | Key Features              |
+|-----------|-------------------|------------|---------------------------|
+| Twitter/X | Twitter API v2    | OAuth 2.0  | text, threads, media      |
+| Instagram | Meta Graph API    | OAuth 2.0  | posts, stories, reels     |
+| LinkedIn  | Marketing API     | OAuth 2.0  | posts, articles           |
+| TikTok    | TikTok Dev API    | OAuth 2.0  | video posts, analytics    |
 
-### Instagram
-- API: Meta Graph API
-- Auth: OAuth 2.0 (Meta Business Suite)
-- Capabilities: posts, stories, reels, carousels, insights
-- Rate limits: 200 calls/hour per user
+## Content Constraints
 
-### LinkedIn
-- API: LinkedIn Marketing API
-- Auth: OAuth 2.0
-- Capabilities: posts, articles, company pages, analytics
-- Rate limits: varies by endpoint and plan
-
-### TikTok
-- API: TikTok for Developers
-- Auth: OAuth 2.0
-- Capabilities: video posts, analytics, comment management
-- Rate limits: varies by endpoint
-
-## Content Normalization
-
-Cada plataforma tiene restricciones diferentes:
-
-| Platform  | Max Text | Media Types       | Hashtags |
-|-----------|----------|-------------------|----------|
-| Twitter/X | 280 char | img, video, gif   | inline   |
-| Instagram | 2200 char| img, video, carousel| max 30  |
-| LinkedIn  | 3000 char| img, video, doc   | max 5    |
-| TikTok    | 2200 char| video             | inline   |
-
-El `ContentAgent` usa estas restricciones para adaptar el contenido a cada plataforma.
+| Platform   | Max Text  | Media Types         | Hashtags |
+|-----------|-----------|---------------------|----------|
+| Twitter/X | 280 chars | img, video, gif     | inline   |
+| Instagram | 2200 chars| img, video, carousel| max 30   |
+| LinkedIn  | 3000 chars| img, video, doc     | max 5    |
+| TikTok    | 2200 chars| video               | inline   |

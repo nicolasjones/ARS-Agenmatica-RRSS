@@ -2,17 +2,17 @@
 
 ## Project Overview
 
-ARS Agenmatica RRSS es un sistema agéntico inteligente para gestión automatizada de redes sociales. Usa agentes de IA especializados (ContentAgent, SchedulerAgent, AnalyticsAgent, EngagementAgent, StrategyAgent) coordinados por un Orchestrator.
+ARS Agenmatica RRSS es un sistema multi-agente inteligente para gestión automatizada de redes sociales **orientado a artistas**. Usa CrewAI como orquestador con lógica de negocio aislada (framework-agnostic) para facilitar migración futura.
 
 ## Tech Stack
 
-- **Runtime**: Node.js 20+ / TypeScript (ESM)
-- **AI**: Anthropic Claude API (`@anthropic-ai/sdk`)
-- **HTTP**: Hono
-- **DB**: PostgreSQL + Drizzle ORM
-- **Queue**: BullMQ + Redis
-- **Logging**: Pino
-- **Testing**: Vitest
+- **Backend**: Python 3.11+ / FastAPI / Pydantic / OpenAPI/Swagger
+- **Frontend**: React 19 / TypeScript / Tailwind CSS 4 / Vite
+- **Agents**: CrewAI (orquestador reemplazable)
+- **AI/LLM**: Anthropic Claude API, OpenAI
+- **DB**: PostgreSQL + SQLAlchemy (futuro)
+- **Logging**: structlog
+- **Testing**: pytest (backend), Vitest (frontend)
 
 ## Development Methodology
 
@@ -25,44 +25,68 @@ Este proyecto usa **OpenSpec** (Spec-Driven Development). Antes de implementar c
 ## Project Structure
 
 ```
-src/
-├── agents/          # Agentes de IA (ContentAgent, SchedulerAgent, etc.)
-├── core/            # Orchestrator, tipos base, config
-├── platforms/       # Adapters para cada red social
-├── data/            # DB schemas, repositories, queue jobs
-├── api/             # HTTP routes (Hono)
-└── shared/          # Utilidades compartidas, logger, errors
+backend/
+├── app/
+│   ├── main.py              # FastAPI app entry point
+│   ├── api/v1/              # API routes (health, content, etc.)
+│   ├── core/                # Config, logging, errors
+│   ├── agents/
+│   │   ├── crews/           # CrewAI orchestration (REPLACEABLE)
+│   │   ├── services/        # Business logic (FRAMEWORK-AGNOSTIC)
+│   │   └── tools/           # Agent tools
+│   ├── platforms/           # Social media adapters
+│   ├── models/              # DB models
+│   └── schemas/             # Pydantic schemas
+├── tests/                   # pytest tests
+└── pyproject.toml
+
+frontend/
+├── src/
+│   ├── components/          # Reusable UI components
+│   ├── pages/               # Route pages
+│   ├── api/                 # API client
+│   └── types/               # TypeScript types
+├── package.json
+└── vite.config.ts
+
 openspec/
-├── specs/           # Source of truth - estado actual del sistema
-├── changes/         # Propuestas de cambio activas
-│   └── archive/     # Cambios completados
+├── specs/                   # Source of truth
+└── changes/                 # Active change proposals
 ```
 
 ## Commands
 
 ```bash
-npm run dev          # Dev server con hot reload
-npm run build        # Compilar TypeScript
-npm run test         # Tests con Vitest
-npm run typecheck    # Verificar tipos sin compilar
-npm run lint         # ESLint
+# Backend
+cd backend
+source .venv/bin/activate
+uvicorn app.main:app --reload          # Dev server (port 8000)
+pytest                                  # Run tests
+ruff check app/                        # Lint
+
+# Frontend
+cd frontend
+npm run dev                            # Dev server (port 5173)
+npm run build                          # Build
+npx tsc --noEmit                       # Type check
 ```
 
 ## Conventions
 
 - Código y comentarios técnicos en inglés
 - Documentación y specs pueden ser en español
-- Archivos TypeScript con extensión `.ts`
-- Imports con path alias `@/` → `src/`
-- Nombres de agentes en PascalCase con sufijo `Agent`
-- Platform adapters implementan `PlatformAdapter` interface
-- Todos los agentes implementan `Agent` interface base
-- Errors extendiendo `AppError` base class
-- Logging estructurado con Pino (no console.log)
+- Backend: Python (PEP 8, ruff), snake_case
+- Frontend: TypeScript, PascalCase componentes, camelCase funciones
+- Agentes CrewAI son wrappers delgados sobre servicios de negocio
+- Servicios de negocio NO importan CrewAI (framework-agnostic)
+- Logging con structlog (backend), nunca print()
+- Errores extienden AppError
 
-## Testing
+## Architecture Rule: Isolated Business Logic
 
-- Tests unitarios junto al código: `*.test.ts`
-- Tests de integración en `src/__tests__/`
-- Mocks de APIs externas siempre
-- `npm run test` ejecuta todo con Vitest
+```
+agents/crews/       ← CrewAI-specific (REPLACEABLE)
+agents/services/    ← Framework-agnostic (CORE - never import crewai here)
+```
+
+Si se migra a LangGraph u otro orquestador, solo se reescribe `crews/`.
