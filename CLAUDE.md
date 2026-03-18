@@ -61,7 +61,10 @@ openspec/
 cd backend
 source .venv/bin/activate
 uvicorn app.main:app --reload          # Dev server (port 8000)
-pytest                                  # Run tests
+pytest                                  # Run tests + coverage (≥80% required)
+pytest tests/unit/                     # Unit tests only
+pytest tests/integration/              # Integration tests only
+pytest --cov=app --cov-report=html     # Tests + HTML coverage report
 ruff check app/                        # Lint
 
 # Frontend
@@ -69,6 +72,16 @@ cd frontend
 npm run dev                            # Dev server (port 5173)
 npm run build                          # Build
 npx tsc --noEmit                       # Type check
+npm run test                           # Unit + component tests (Vitest)
+npm run test:watch                     # Tests in watch mode
+npm run test:coverage                  # Tests + coverage report
+npm run test:all                       # Tests + type check
+
+# E2E (desde la raíz)
+npx playwright install chromium        # Install browser (first time)
+npx playwright test                    # Run all E2E tests
+npx playwright test --headed           # Run with browser visible
+npx playwright show-report             # Open last HTML report
 ```
 
 ## Conventions

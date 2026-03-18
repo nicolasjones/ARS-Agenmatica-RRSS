@@ -17,6 +17,11 @@ dependencies = [
 dev = [
     "pytest>=8.3.0",
     "pytest-asyncio>=0.25.0",
+    "pytest-cov>=6.0.0",
+    "pytest-mock>=3.14.0",
+    "respx>=0.22.0",
+    "factory-boy>=3.3.0",
+    "httpx>=0.28.0",
     "ruff>=0.11.0",
 ]
 
@@ -30,3 +35,15 @@ select = ["E", "F", "I", "N", "W", "UP"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+addopts = "--cov=app --cov-report=term-missing --cov-report=html --cov-fail-under=80"
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["app/agents/crews/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]
