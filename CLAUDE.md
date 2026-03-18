@@ -57,7 +57,16 @@ openspec/
 ## Commands
 
 ```bash
-# Backend
+# Docker (requires Docker Engine ≥24, Compose v2)
+make dev                               # Start dev environment (backend + frontend + postgres)
+make prod                              # Start production environment
+make build                             # Build production images
+make test                              # Run backend + frontend tests in containers
+make test-e2e                          # Run Playwright E2E tests in container
+make clean                             # Remove all containers, images, and volumes
+make logs                              # Follow container logs
+
+# Backend (without Docker)
 cd backend
 source .venv/bin/activate
 uvicorn app.main:app --reload          # Dev server (port 8000)
@@ -67,7 +76,7 @@ pytest tests/integration/              # Integration tests only
 pytest --cov=app --cov-report=html     # Tests + HTML coverage report
 ruff check app/                        # Lint
 
-# Frontend
+# Frontend (without Docker)
 cd frontend
 npm run dev                            # Dev server (port 5173)
 npm run build                          # Build

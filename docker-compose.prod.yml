@@ -1,0 +1,36 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      target: prod
+    ports:
+      - "8000:8000"
+    volumes: []
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/ars_agenmatica
+      - ENVIRONMENT=production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      target: prod
+    ports:
+      - "80:80"
+    volumes: []
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  postgres:
+    restart: unless-stopped

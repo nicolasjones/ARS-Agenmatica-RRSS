@@ -44,3 +44,6 @@ tmp/
 # Playwright
 playwright-report/
 test-results/
+
+# Docker
+docker-compose.override.yml
